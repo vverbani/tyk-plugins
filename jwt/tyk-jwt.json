@@ -1,0 +1,8 @@
+{
+    "jwtCertFile": "/opt/tyk-certificates/gateway-certificate.pem",
+    "jwtKeyFile": "/opt/tyk-certificates/gateway-key.pem",
+    "jwksCertFiles": [
+      "/opt/tyk-certificates/gateway-certificate.pem",
+      "/opt/tyk-certificates/gateway-new-certificate.pem"
+    ]
+  }
