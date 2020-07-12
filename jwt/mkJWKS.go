@@ -32,7 +32,6 @@ func main() {
 			cert, err = x509.ParseCertificate(block.Bytes)
 			if err != nil {
 				fmt.Println("[FATAL]Cannot parse "+certFile+", error: ", err)
-				fmt.Println(certBytes)
 				os.Exit(1)
 			}
 			certs = append(certs, cert)
@@ -52,6 +51,10 @@ func main() {
 		}
 		jwks.Keys = append(jwks.Keys, jwk)
 	}
-	jsonJwks, _ := json.Marshal(&jwks)
+	jsonJwks, err := json.Marshal(&jwks)
+	if err != nil {
+		fmt.Println("[FATAL]Unable to marshal the json: ", err)
+		os.Exit(1)
+	}
 	fmt.Println(string(jsonJwks))
 }
