@@ -34,12 +34,13 @@ func main() {
 				fmt.Println("[FATAL]Cannot parse "+certFile+", error: ", err)
 				os.Exit(1)
 			}
+			fmt.Println(cert.SerialNumber.String())
 			certs = append(certs, cert)
 		}
 		cert = certs[0]
 		x5tSHA1 := sha1.Sum(cert.Raw)
 		x5tSHA256 := sha256.Sum256(cert.Raw)
-		fmt.Println(cert.SerialNumber.String())
+
 		jwk := jose.JSONWebKey{
 			Key:                         cert.PublicKey,
 			KeyID:                       cert.SerialNumber.String(),
