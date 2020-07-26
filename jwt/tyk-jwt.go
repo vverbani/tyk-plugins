@@ -2,7 +2,11 @@ package main
 
 import (
 	"crypto/rsa"
+	"crypto/sha1"
+	"crypto/sha256"
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -10,6 +14,7 @@ import (
 
 	"github.com/TykTechnologies/tyk/log"
 	jwt "github.com/dgrijalva/jwt-go"
+	"gopkg.in/square/go-jose.v2"
 )
 
 type jwtConfig struct {
@@ -51,13 +56,47 @@ func init() {
 	logErr("Error", "Opening JwtKeyFile "+config.JwtKeyFile+" failed: ", err)
 	jwtPrivateKey, err = jwt.ParseRSAPrivateKeyFromPEM(jwtKeyBytes)
 	logErr("Error", "ParseRSAPrivateKeyFromPEM failed with error: ", err)
-	logger.Info("jwtPrivateKey is: ", jwtPrivateKey) // lets not log our private key
+	// logger.Info("jwtPrivateKey is: ", jwtPrivateKey) // lets not log our private key
 
 	jwtCertBytes, err := ioutil.ReadFile(config.JwtCertFile)
 	logErr("Error", "Opening JwtKeyFile "+config.JwtCertFile+" failed: ", err)
-	jwtPublicCert, err = jwt.ParseRSAPublicKeyFromPEM(jwtCertBytes)
-	logErr("Error", "ParseRSAPublicKeyFromPEM failed with error: ", err)
+	//jwtPublicCert, err = jwt.ParseRSAPublicKeyFromPEM(jwtCertBytes)
+	//logErr("Error", "ParseRSAPublicKeyFromPEM failed with error: ", err)
 	logger.Info("jwtPublicCert is: ", jwtPublicCert)
+	// end of jwt stuff
+
+	// start of jwks stuff
+	pubPem, _ := pem.Decode(jwtCertBytes)
+	var pubCerts []*x509.Certificate
+	var jwks jose.JSONWebKeySet
+	pubCerts, _ = x509.ParseCertificates(pubPem.Bytes)
+
+	cert := pubCerts[0]
+	x5tSHA1 := sha1.Sum(cert.Raw)
+	x5tSHA256 := sha256.Sum256(cert.Raw)
+	jwk := jose.JSONWebKey{
+		Key:                         cert.PublicKey,
+		KeyID:                       cert.SerialNumber.String(),
+		Algorithm:                   cert.SignatureAlgorithm.String(),
+		Certificates:                pubCerts,
+		CertificateThumbprintSHA1:   x5tSHA1[:],
+		CertificateThumbprintSHA256: x5tSHA256[:],
+		Use:                         "sig",
+	}
+	jwks.Keys = append(jwks.Keys, jwk)
+	logErr("Error", "failed to convert to JWK: ", err)
+	jsonJwks, _ := json.Marshal(&jwks)
+	logger.Info("jwk is: ", string(jsonJwks))
+	// end jwks stuff
+
+	/*
+		err = jwk.AssignKeyID(set)
+		if err != nil {
+			log.Printf("failed to assign kid: %s", err)
+			return err
+		}
+	*/
+
 }
 
 func logErr(level, message string, err error) {
@@ -90,14 +129,17 @@ type myClaims struct {
 	jwt.StandardClaims
 }
 
-// AddFooBarHeader adds custom "Foo: Bar" header to the request
-func AddFooBarHeader(rw http.ResponseWriter, r *http.Request) {
+// AddJwsHeader adds custom "Foo: Bar" header to the request
+func AddJwsHeader(rw http.ResponseWriter, r *http.Request) {
 	logger.Info("Processing HTTP request in Golang plugin!!")
 	claims := myClaims{
 		Nbf: time.Date(2015, 10, 10, 12, 0, 0, 0, time.UTC).Unix(),
 	}
+	logger.Info(claims, nil)
+	// method has to be RS256 for RSA certificates
+	// People use HS256 because they just want a passphrase
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
-	ss, err := token.SignedString(jwtPrivateKey)
+	signedToken, err := token.SignedString(jwtPrivateKey)
 	logErr("Info", "token.SignedString(jwtPrivateKey) ", err)
 	/*
 		t := jwt.New(jwt.GetSigningMethod("RS256"))
@@ -109,7 +151,7 @@ func AddFooBarHeader(rw http.ResponseWriter, r *http.Request) {
 		t.Claims["exp"] = time.Now().Add(time.Minute * 1).Unix()
 		tokenString, err := t.SignedString(signKey) */
 
-	r.Header.Add("JWT", ss)
+	r.Header.Add("Jwt", signedToken)
 }
 
 func main() {}
