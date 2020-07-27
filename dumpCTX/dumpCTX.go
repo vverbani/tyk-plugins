@@ -64,14 +64,6 @@ func DumpCTX(rw http.ResponseWriter, r *http.Request) {
   // Only in 3.0+
   //spewVal(ctx.GraphQLRequest, "ctx.GraphQLRequest", r)
 
-  /* 
-  if v := r.Context().Value(ctx.UrlRewriteTarget) ; v != nil {
-    log.Println(v)
-  } else {
-    log.Println("FAILED")
-  }
-  */
-
 }
 
 func main() {}
