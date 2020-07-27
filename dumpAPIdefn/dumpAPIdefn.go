@@ -14,6 +14,11 @@ func DumpAPIdefn(rw http.ResponseWriter, r *http.Request) {
   log.Println("Start API definition dump")
   spew.Dump(apidef)
   log.Println("End API definition dump")
+  if v := r.Context().Value(ctx.UrlRewriteTarget) ; v != nil {
+    log.Println(v)
+  } else {
+    log.Println("FAILED")
+    }
 
 }
 
