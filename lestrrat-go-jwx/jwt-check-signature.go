@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/lestrrat/go-jwx/jwk"
 )
@@ -18,15 +17,9 @@ func getKey(token *jwt.Token) (interface{}, error) {
 	// TODO: cache response so we don't have to make a request every time
 	// we want to verify a JWT
 	set, err := jwk.FetchHTTP(jwksURL)
-	fmt.Println("set")
-	fmt.Println(spew.Sdump(set))
-	fmt.Println("")
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("token")
-	fmt.Println(spew.Sdump(token))
-	fmt.Println("")
 
 	keyID, ok := token.Header["kid"].(string)
 	if !ok {
