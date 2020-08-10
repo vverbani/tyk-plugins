@@ -1,10 +1,12 @@
 package main
 
 import (
+	"crypto/tls"
 	"errors"
 	"flag"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/dgrijalva/jwt-go"
@@ -35,6 +37,7 @@ func getKey(token *jwt.Token) (interface{}, error) {
 }
 
 func main() {
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	tokenString = flag.String("token", "", "JWT token to verify")
 	jwksURL = flag.String("jwksURL", "", "URL of the JWKS service to retrive the key from")
 	flag.Parse()

@@ -1,13 +1,17 @@
 package main
 
 import (
+	"bytes"
 	"crypto/rsa"
+	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"time"
 
@@ -16,7 +20,7 @@ import (
 	"github.com/lestrrat-go/jwx/jwt"
 )
 
-const aLongLongTimeAgo = 233431200
+//const aLongLongTimeAgo = 233431200
 
 var (
 	errKeyMustBePEMEncoded = errors.New("Invalid Key: Key must be PEM encoded PKCS1 or PKCS8 private key")
@@ -120,18 +124,18 @@ func parseRSACertFromFile(rsaCertKeyLocation string) (*x509.Certificate, error) 
 	return parseRSACertFromPEM(cert)
 }
 
-func createJwt() {
-	cert, err := parseRSACertFromFile("cert.pem")
+func createJwt(certFile, keyFile, jwksURL string) {
+	cert, err := parseRSACertFromFile(certFile)
 	hdrs := jws.NewHeaders()
 	hdrs.Set(jws.KeyIDKey, cert.SerialNumber.String())
 
 	s := jwt.New()
 	s.Set(jwt.SubjectKey, `https://github.com/lestrrat-go/jwx/jwt`)
 	s.Set(jwt.AudienceKey, `Golang Users`)
-	s.Set(jwt.IssuedAtKey, time.Unix(aLongLongTimeAgo, 0))
+	s.Set(jwt.IssuedAtKey, time.Now().Unix)
 	s.Set(`privateClaimKey`, `Hello, World!`)
 
-	privkey, err := parseRSAPrivateKeyFromFile("key1.pem")
+	privkey, err := parseRSAPrivateKeyFromFile(keyFile)
 	if err != nil {
 		log.Printf("failed to generate private key: %s", err)
 		return
@@ -142,14 +146,25 @@ func createJwt() {
 		log.Printf("failed to created JWS message: %s", err)
 		return
 	}
+	pubkey := cert.PublicKey.(*rsa.PublicKey)
 
 	fmt.Println("Signed jws")
 	fmt.Println(string(signed))
 	fmt.Println("")
 
+	token, err := jwt.Parse(bytes.NewReader(signed), jwt.WithVerify(jwa.RS256, pubkey))
+	if err != nil {
+		panic(err)
+	}
+	//fmt.Println(token)
+	//claims := token.PrivateClaims.(jwt.MapClaims)
+	for key, value := range token.PrivateClaims() {
+		fmt.Printf("%s\t->\t%v\n", key, value)
+	}
+
 	// When you received a JWS message, you can verify the signature
 	// and grab the payload sent in the message in one go:
-	verified, err := jws.Verify(signed, jwa.RS256, &privkey.PublicKey)
+	verified, err := jws.Verify(signed, jwa.RS256, *pubkey)
 	if err != nil {
 		log.Printf("failed to verify message: %s", err)
 		return
@@ -159,5 +174,10 @@ func createJwt() {
 }
 
 func main() {
-	createJwt()
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	cert := flag.String("cert", "cert.pem", "The x509 RSA public certificate")
+	key := flag.String("key", "key.pem", "The RSA private key")
+	jwks := flag.String("jwks", "http://localhost:8080/jwks.json", "The matching JWKS to the cert and key")
+	flag.Parse()
+	createJwt(*cert, *key, *jwks)
 }
