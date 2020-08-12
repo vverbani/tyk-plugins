@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"crypto/rsa"
-	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
 	"encoding/pem"
@@ -13,7 +12,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -200,7 +198,6 @@ func createJwt(certFile, keyFile, claimsFile string) {
 }
 
 func main() {
-	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	cert := flag.String("cert", "cert.pem", "The x509 RSA public certificate")
 	key := flag.String("key", "key.pem", "The RSA private key")
 	claims := flag.String("claims", "claims.json", "A file of claims in json format")

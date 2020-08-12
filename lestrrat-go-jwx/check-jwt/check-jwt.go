@@ -41,14 +41,11 @@ func main() {
 	tokenString = flag.String("token", "", "JWT token to verify")
 	jwksURL = flag.String("jwksURL", "", "URL of the JWKS service to retrive the key from")
 	flag.Parse()
-	if *tokenString == "" {
+	if *tokenString == "" || *jwksURL == "" {
 		log.Fatal("Must speficy both --jwksURL and --token")
 		os.Exit(1)
 	}
-	if *jwksURL == "" {
-		log.Fatal("Must speficy both --jwksURL and --token")
-		os.Exit(1)
-	}
+
 	token, err := jwt.Parse(*tokenString, getKey)
 	if err != nil {
 		panic(err)
