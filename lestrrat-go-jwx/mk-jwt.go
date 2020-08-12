@@ -2,9 +2,11 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"crypto/rsa"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/json"
 	"encoding/pem"
 	"errors"
 	"flag"
@@ -124,8 +126,22 @@ func parseRSACertFromFile(rsaCertKeyLocation string) (*x509.Certificate, error) 
 	return parseRSACertFromPEM(cert)
 }
 
-func createJwt(certFile, keyFile, jwksURL string) {
+func parseJSONFromFIle(claimsFile string) (map[string]interface{}, error) {
+	jsonClaimsFile, err := os.Open(claimsFile)
+	if err != nil {
+		return nil, err
+	}
+	defer jsonClaimsFile.Close()
+	jsonByteValue, _ := ioutil.ReadAll(jsonClaimsFile)
+	var jsonClaims map[string]interface{}
+	json.Unmarshal([]byte(jsonByteValue), &jsonClaims)
+	return jsonClaims, nil
+}
+
+func createJwt(certFile, keyFile, claimsFile string) {
 	cert, err := parseRSACertFromFile(certFile)
+	json, err := parseJSONFromFIle(claimsFile)
+
 	hdrs := jws.NewHeaders()
 	hdrs.Set(jws.KeyIDKey, cert.SerialNumber.String())
 
@@ -133,22 +149,24 @@ func createJwt(certFile, keyFile, jwksURL string) {
 	s.Set(jwt.SubjectKey, `https://github.com/lestrrat-go/jwx/jwt`)
 	s.Set(jwt.AudienceKey, `Golang Users`)
 	s.Set(jwt.IssuedAtKey, time.Now().Unix)
-	s.Set(`privateClaimKey`, `Hello, World!`)
+	for jsonKey, jsonValue := range json {
+		s.Set(jsonKey, jsonValue)
+	}
 
 	privkey, err := parseRSAPrivateKeyFromFile(keyFile)
 	if err != nil {
-		log.Printf("failed to generate private key: %s", err)
+		log.Printf("Failed to load private key from %s: %s", keyFile, err)
 		return
 	}
 
 	signed, err := jwt.Sign(s, jwa.RS256, privkey, jwt.WithHeaders(hdrs))
 	if err != nil {
-		log.Printf("failed to created JWS message: %s", err)
+		log.Printf("Failed to created JWS message: %s", err)
 		return
 	}
 	pubkey := cert.PublicKey.(*rsa.PublicKey)
 
-	fmt.Println("Signed jws")
+	fmt.Println("Signed jws with certificate in ", certFile)
 	fmt.Println(string(signed))
 	fmt.Println("")
 
@@ -158,26 +176,39 @@ func createJwt(certFile, keyFile, jwksURL string) {
 	}
 	//fmt.Println(token)
 	//claims := token.PrivateClaims.(jwt.MapClaims)
+	fmt.Println("Private claims:")
 	for key, value := range token.PrivateClaims() {
 		fmt.Printf("%s\t->\t%v\n", key, value)
+	}
+	fmt.Println("All claims:")
+	// seriously??? This is what you have to do to get a list of claims?
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	for iter := token.Iterate(ctx); iter.Next(ctx); {
+		pair := iter.Pair()
+		fmt.Printf("%s -> %v\n", pair.Key, pair.Value)
 	}
 
 	// When you received a JWS message, you can verify the signature
 	// and grab the payload sent in the message in one go:
 	verified, err := jws.Verify(signed, jwa.RS256, *pubkey)
 	if err != nil {
-		log.Printf("failed to verify message: %s", err)
+		log.Printf("Failed to verify message: %s", err)
 		return
 	}
-
-	log.Printf("signed message verified! -> %s", verified)
+	fmt.Printf("\nSigned message verified! -> %s\n", verified)
 }
 
 func main() {
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	cert := flag.String("cert", "cert.pem", "The x509 RSA public certificate")
 	key := flag.String("key", "key.pem", "The RSA private key")
-	jwks := flag.String("jwks", "http://localhost:8080/jwks.json", "The matching JWKS to the cert and key")
+	claims := flag.String("claims", "claims.json", "A file of claims in json format")
+	//jwks := flag.String("jwks", "http://localhost:8080/jwks.json", "The matching JWKS to the cert and key")
 	flag.Parse()
-	createJwt(*cert, *key, *jwks)
+	if *cert == "" || *key == "" {
+		fmt.Println("Must provide --cert, --key, --claims")
+		os.Exit(1)
+	}
+	createJwt(*cert, *key, *claims)
 }
