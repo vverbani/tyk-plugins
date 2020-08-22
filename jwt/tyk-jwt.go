@@ -125,31 +125,25 @@ func logErr(level, message string, err error) {
 }
 
 type myClaims struct {
-	Nbf int64 `json:"nbf"`
+	Nbf         int64  `json:"nbf"`
+	AccessToken string `json: "AccessToken"`
 	jwt.StandardClaims
 }
 
 // AddJwsHeader adds custom "Foo: Bar" header to the request
 func AddJwsHeader(rw http.ResponseWriter, r *http.Request) {
-	logger.Info("Processing HTTP request in Golang plugin!!")
+	//logger.Info("Processing HTTP request in Golang plugin!!")
 	claims := myClaims{
-		Nbf: time.Date(2015, 10, 10, 12, 0, 0, 0, time.UTC).Unix(),
+		Nbf:         time.Date(2015, 10, 10, 12, 0, 0, 0, time.UTC).Unix(),
+		AccessToken: "level1",
 	}
-	logger.Info(claims, nil)
+	//logger.Info(claims, nil)
 	// method has to be RS256 for RSA certificates
 	// People use HS256 because they just want a passphrase
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
-	signedToken, err := token.SignedString(jwtPrivateKey)
-	logErr("Info", "token.SignedString(jwtPrivateKey) ", err)
-	/*
-		t := jwt.New(jwt.GetSigningMethod("RS256"))
-		t.Claims["AccessToken"] = "level1"
-		t.Claims["CustomUserInfo"] = struct {
-			Name string
-			Kind string
-		}{user, "human"}
-		t.Claims["exp"] = time.Now().Add(time.Minute * 1).Unix()
-		tokenString, err := t.SignedString(signKey) */
+	signedToken, _ := token.SignedString(jwtPrivateKey)
+	//logger.Info("Info ", "token.SignedString(jwtPrivateKey) ", err)
+	//logger.Info("Info ", signedToken, err)
 
 	r.Header.Add("Jwt", signedToken)
 }
@@ -157,5 +151,6 @@ func AddJwsHeader(rw http.ResponseWriter, r *http.Request) {
 func main() {}
 
 // docker run --rm -v /C//Users/pstubbs/go/src/mine/tyk-plugins/jwt:/plugin-source tykio/tyk-plugin-compiler:v2.9.4.2 tyk-jwt.so
-// cp .\tyk-jwt.so C:\Users\pstubbs\tyk\plugins\2.9.4.2\
+// docker container cp .\tyk-jwt.so sandbox-0:/opt/tyk-plugins/
+// ??? doesn't work ??? cp .\tyk-jwt.so C:\Users\pstubbs\tyk\plugins\2.9.4.2\
 // docker container restart sandbox-1
