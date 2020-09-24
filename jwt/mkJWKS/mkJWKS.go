@@ -13,6 +13,16 @@ import (
 	"gopkg.in/square/go-jose.v2"
 )
 
+func translateSignatureAlgorithm(SigAlg string) (string) {
+  if SigAlg == "SHA256-RSA" {
+    return "RSA256"
+  } else {
+    fmt.Println("[Fatal]Unknown SignatureAlgorithm ", SigAlg)
+    os.Exit(1)
+  }
+  return ""
+}
+
 func main() {
 	var jwks jose.JSONWebKeySet
 	for _, certFile := range os.Args[1:] {
@@ -34,7 +44,7 @@ func main() {
 				fmt.Println("[FATAL]Cannot parse "+certFile+", error: ", err)
 				os.Exit(1)
 			}
-			fmt.Println(cert.SerialNumber.String())
+			//fmt.Println(cert.SerialNumber.String())
 			certs = append(certs, cert)
 		}
 		cert = certs[0]
@@ -44,7 +54,7 @@ func main() {
 		jwk := jose.JSONWebKey{
 			Key:                         cert.PublicKey,
 			KeyID:                       cert.SerialNumber.String(),
-			Algorithm:                   cert.SignatureAlgorithm.String(),
+			Algorithm:                   translateSignatureAlgorithm(cert.SignatureAlgorithm.String()),
 			Certificates:                certs,
 			CertificateThumbprintSHA1:   x5tSHA1[:],
 			CertificateThumbprintSHA256: x5tSHA256[:],
