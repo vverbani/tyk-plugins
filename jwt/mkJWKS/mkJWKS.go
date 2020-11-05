@@ -15,7 +15,7 @@ import (
 
 func translateSignatureAlgorithm(SigAlg string) (string) {
   if SigAlg == "SHA256-RSA" {
-    return "RSA256"
+    return "RS256"
   } else {
     fmt.Println("[Fatal]Unknown SignatureAlgorithm ", SigAlg)
     os.Exit(1)
