@@ -21,8 +21,8 @@ var policyArray = []string{"60d30bc4077b5f00175ad141", "60d30bc4077b5f00175ad142
 var headerVal = []string{"Val1", "Val2", "Val3", "Val4"}
 var headerField = "X-Tyk-Pol-Val"
 
-// addHeaderFromClaim based on Policy ID
-func addHeaderFromClaim(rw http.ResponseWriter, r *http.Request) {
+// AddHeaderFromClaim based on Policy ID
+func AddHeaderFromClaim(rw http.ResponseWriter, r *http.Request) {
 
 	// 1. Retrieve the 'pol' claim from the JWT used to authenticate
 	// 2. Look that up in policyArray
