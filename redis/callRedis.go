@@ -1,7 +1,7 @@
 package main
 
 import (
-  "net/http"
+	"net/http"
 
 	logger "github.com/TykTechnologies/tyk/log"
 	"github.com/TykTechnologies/tyk/storage"
@@ -19,7 +19,7 @@ func tykStoreData(key, value string) {
 
 func tykGetData(key string) string {
 	store := storage.RedisCluster{KeyPrefix: pluginDefaultKeyPrefix}
-  val, _ := store.GetKey(key)
+	val, _ := store.GetKey(key)
 	return val
 }
 
