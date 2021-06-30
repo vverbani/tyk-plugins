@@ -7,18 +7,17 @@ import (
 	"github.com/TykTechnologies/tyk/storage"
 )
 
-var log = logger.Get()
-
 const pluginDefaultKeyPrefix = "PetesPlugin-data:"
+
+var log = logger.Get()
+var store = storage.RedisCluster{KeyPrefix: pluginDefaultKeyPrefix}
 
 func tykStoreData(key, value string) {
 	ttl := int64(1000)
-	store := storage.RedisCluster{KeyPrefix: pluginDefaultKeyPrefix}
 	store.SetKey(key, value, ttl)
 }
 
 func tykGetData(key string) string {
-	store := storage.RedisCluster{KeyPrefix: pluginDefaultKeyPrefix}
 	val, _ := store.GetKey(key)
 	return val
 }
