@@ -23,14 +23,14 @@ func tykGetData(key string) string {
 	return val
 }
 
-// CallRedis based on Policy ID
+// CallRedis to poke stuff in there for funzies
 func CallRedis(rw http.ResponseWriter, r *http.Request) {
 
 	log.Info("Start CallRedis Plugin")
 
 	tykStoreData("Pete", "Woz Here")
-	log.Info("CallRedis: saved")
-	log.Info("CallRedis: loaded: " + tykGetData("Pete"))
+	log.Info("CallRedis: saved to redis")
+	log.Info("CallRedis: value retrieved: " + tykGetData("Pete"))
 
 	log.Info("End CallRedis Plugin")
 
