@@ -1,0 +1,14 @@
+{
+  "file_list": [
+    "addHeader.so"
+  ],
+  "custom_middleware": {
+    "driver": "goplugin",
+    "pre": [
+      {
+        "name": "AddHeader",
+        "path": "addHeader.so"
+      }
+    ]
+  }
+}
