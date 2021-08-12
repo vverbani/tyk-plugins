@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+  "reflect"
 
 	"github.com/TykTechnologies/tyk/ctx"
 	"github.com/davecgh/go-spew/spew"
@@ -19,26 +20,40 @@ func spewVal(c ctx.Key, s string, r *http.Request) {
 	return
 }
 
+func mylogger(s string) {
+  prefix := "##################################### "
+  log.Println(prefix + s)
+}
+
 // DumpCTX dumps out context variables avialble to the plugin
 func DumpCTX(rw http.ResponseWriter, r *http.Request) {
 
+  // Dump the whole http.Request
+	mylogger("Start http.Request dump")
+	log.Print(spew.Sdump(r))
+	mylogger("End http.Request dump")
+
+
 	// API definition object
-	log.Println("Start API definition dump")
+	mylogger("Start API definition dump")
 	apidef := ctx.GetDefinition(r)
 	log.Print(spew.Sdump(apidef))
-	log.Println("End API definition dump")
+	mylogger("End API definition dump")
 
 	// Auth Token
-	log.Println("Start Auth Token dump")
+	mylogger("Start Auth Token dump")
 	authToken := ctx.GetAuthToken(r)
 	log.Print(spew.Sdump(authToken))
-	log.Println("End Auth Token dump")
+	mylogger("End Auth Token dump")
 
 	// SessionState
-	log.Println("Start Session State dump")
+	mylogger("Start Session State dump")
 	sessionState := ctx.GetSession(r)
 	log.Print(spew.Sdump(sessionState))
-	log.Println("End Session State dump")
+	mylogger("End Session State dump")
+	mylogger("Start Session Alias")
+  log.Print(sessionState.Alias)
+	mylogger("End Session Alias")
 
 	// work through the rest of the constants and dump them
 	spewVal(ctx.UpdateSession, "ctx.UpdateSession", r)
@@ -64,12 +79,12 @@ func DumpCTX(rw http.ResponseWriter, r *http.Request) {
 	spewVal(ctx.RequestStatus, "ctx.RequestStatus", r)
 	// Only in 3.0+
 	//spewVal(ctx.GraphQLRequest, "ctx.GraphQLRequest", r)
-	log.Println("Start Metadata")
-	//log.Println(reflect.ValueOf(sessionState).Elem().FieldByName("MetaData"))
+	mylogger("Start Metadata")
+	log.Println(reflect.ValueOf(sessionState).Elem().FieldByName("MetaData"))
 	for key, value := range sessionState.MetaData {
 		log.Print(key, "->", value)
 	}
-	log.Println("End Metadata")
+	mylogger("End Metadata")
 }
 
 func main() {}
