@@ -1,0 +1,14 @@
+{
+  "file_list": [
+    "dummy.so"
+  ],
+  "custom_middleware": {
+    "driver": "goplugin",
+    "pre": [
+      {
+        "name": "DummyOne",
+        "path": "dummy.so"
+      }
+    ]
+  }
+}
