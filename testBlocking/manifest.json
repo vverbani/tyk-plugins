@@ -1,0 +1,14 @@
+{
+  "file_list": [
+    "testBlocking.so"
+  ],
+  "custom_middleware": {
+    "driver": "goplugin",
+    "pre": [
+      {
+        "name": "TestBlocking",
+        "path": "testBlocking.so"
+      }
+    ]
+  }
+}
