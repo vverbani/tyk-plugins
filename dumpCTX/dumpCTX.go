@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
-  "reflect"
+	"reflect"
 
 	"github.com/TykTechnologies/tyk/ctx"
 	"github.com/davecgh/go-spew/spew"
@@ -21,23 +21,26 @@ func spewVal(c ctx.Key, s string, r *http.Request) {
 }
 
 func mylogger(s string) {
-  prefix := "##################################### "
-  log.Println(prefix + s)
+	prefix := "##################################### "
+	log.Println(prefix + s)
 }
 
 // DumpCTX dumps out context variables avialble to the plugin
 func DumpCTX(rw http.ResponseWriter, r *http.Request) {
 
-  // Dump the whole http.Request
+	// Dump the whole http.Request
 	mylogger("Start http.Request dump")
 	log.Print(spew.Sdump(r))
 	mylogger("End http.Request dump")
 
-
 	// API definition object
 	mylogger("Start API definition dump")
 	apidef := ctx.GetDefinition(r)
-	log.Print(spew.Sdump(apidef))
+	if apidef != nil {
+		log.Print(spew.Sdump(apidef))
+	} else {
+		log.Print("[WARN]ctx.GetDefinition(r) retuned nil")
+	}
 	mylogger("End API definition dump")
 
 	// Auth Token
@@ -49,12 +52,16 @@ func DumpCTX(rw http.ResponseWriter, r *http.Request) {
 	// SessionState
 	mylogger("Start Session State dump")
 	sessionState := ctx.GetSession(r)
-	log.Print(spew.Sdump(sessionState))
-	mylogger("End Session State dump")
-	mylogger("Start Session Alias")
-  log.Print(sessionState.Alias)
-	mylogger("End Session Alias")
+	if sessionState != nil {
+		log.Print(spew.Sdump(sessionState))
 
+		mylogger("Start Session Alias")
+		log.Print(sessionState.Alias)
+		mylogger("End Session Alias")
+	} else {
+		log.Print("[WARN]ctx.GetSession(r) retuned nil")
+	}
+	mylogger("End Session State dump")
 	// work through the rest of the constants and dump them
 	spewVal(ctx.UpdateSession, "ctx.UpdateSession", r)
 	spewVal(ctx.HashedAuthToken, "ctx.HashedAuthToken", r)
@@ -79,12 +86,14 @@ func DumpCTX(rw http.ResponseWriter, r *http.Request) {
 	spewVal(ctx.RequestStatus, "ctx.RequestStatus", r)
 	// Only in 3.0+
 	//spewVal(ctx.GraphQLRequest, "ctx.GraphQLRequest", r)
-	mylogger("Start Metadata")
-	log.Println(reflect.ValueOf(sessionState).Elem().FieldByName("MetaData"))
-	for key, value := range sessionState.MetaData {
-		log.Print(key, "->", value)
+	if sessionState != nil {
+		mylogger("Start Session Metadata")
+		log.Println(reflect.ValueOf(sessionState).Elem().FieldByName("MetaData"))
+		for key, value := range sessionState.MetaData {
+			log.Print(spew.Sdump(key), "->", spew.Sdump(value))
+		}
+		mylogger("End Session Metadata")
 	}
-	mylogger("End Metadata")
 }
 
 func main() {}
