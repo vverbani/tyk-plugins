@@ -2,9 +2,6 @@ package main
 
 import (
   "net/http"
-  "os"
-  "bufio"
-  "strings"
   "log"
 )
 
