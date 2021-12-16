@@ -1,0 +1,13 @@
+{
+  "file_list": [
+    "responsBody.py"
+  ],
+  "custom_middleware": {
+    "driver": "python",
+    "response": [
+      {
+        "name": "ChangeResponseBody"
+      }
+    ]
+  }
+}
