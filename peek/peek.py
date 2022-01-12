@@ -1,6 +1,22 @@
 from tyk.decorators import *
 from gateway import TykGateway as tyk
 
+# sample config data for the corresponding Tyk API definition
+# To return the contents of a file
+# {
+#  "peek": "/opt/tyk-gateway/tyk.conf"
+# }
+#
+# to list a directory
+# {
+#  "peek": "/tmp"
+# }
+#
+# To return the enviornment variables
+#{
+#  "peek": "ENV"
+#}
+
 import os
 import json
 
