@@ -14,7 +14,8 @@ import (
 
 	"github.com/TykTechnologies/tyk/log"
 	jwt "github.com/dgrijalva/jwt-go"
-	"gopkg.in/square/go-jose.v2"
+	"github.com/go-jose/go-jose/v2"
+	//"gopkg.in/square/go-jose.v3"
 )
 
 type jwtConfig struct {
@@ -150,7 +151,4 @@ func AddJwsHeader(rw http.ResponseWriter, r *http.Request) {
 
 func main() {}
 
-// docker run --rm -v /C//Users/pstubbs/go/src/mine/tyk-plugins/jwt:/plugin-source tykio/tyk-plugin-compiler:v2.9.4.2 tyk-jwt.so
-// docker container cp .\tyk-jwt.so sandbox-0:/opt/tyk-plugins/
-// ??? doesn't work ??? cp .\tyk-jwt.so C:\Users\pstubbs\tyk\plugins\2.9.4.2\
-// docker container restart sandbox-1
+// docker run --rm -v .:/plugin-source tykio/tyk-plugin-compiler:v2.9.4.2 tyk-jwt.so
