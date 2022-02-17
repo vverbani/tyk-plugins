@@ -14,8 +14,9 @@ import (
 
 	"github.com/TykTechnologies/tyk/log"
 	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/go-jose/go-jose/v2"
-	//"gopkg.in/square/go-jose.v3"
+	//"gopkg.in/go-jose/go-jose.v2"
+	"github.com/go-jose/go-jose/v3"
+	les "github.com/lestrrat-go/jwx/jwk"
 )
 
 type jwtConfig struct {
@@ -98,6 +99,12 @@ func init() {
 		}
 	*/
 
+	// dummy 
+	jwksURL := "mystring"
+	if jwksURL == "new" {
+		set, err := les.FetchHTTP(jwksURL)
+	}
+
 }
 
 func logErr(level, message string, err error) {
@@ -151,4 +158,4 @@ func AddJwsHeader(rw http.ResponseWriter, r *http.Request) {
 
 func main() {}
 
-// docker run --rm -v .:/plugin-source tykio/tyk-plugin-compiler:v2.9.4.2 tyk-jwt.so
+// docker run --rm -v $PWD:/plugin-source tykio/tyk-plugin-compiler:v2.9.4.2 tyk-jwt.so
