@@ -1,0 +1,13 @@
+{
+  "file_list": [
+    "vault-plugin.py"
+  ],
+  "custom_middleware": {
+    "driver": "python",
+    "pre": [
+      {
+        "name": "PreHook",
+      }
+    ]
+  }
+}
