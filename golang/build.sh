@@ -71,7 +71,7 @@ case $1 in
 		;;
 	*)
 		echo "[FATAL]Unknown version"
-		echo "       use v3.0.9 v3.0.10-rc5 v4.0.0"
+		echo "       use v2.9.4.7 v2.9.4.8 v3.0.7 v3.0.9 v3.0.10 v3.2.3-rc6 v4.0.0"
 		exit 1
 		;;
 esac
